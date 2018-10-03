@@ -4,9 +4,26 @@
     "name" : "IP Blacklist Warning",
     "description": "Warn about communication to blacklisted IPs",
     "version" : "1.0",
+    "permissions": [
+		"activeTab",
+		"storage",
+		"unlimitedStorage",
+		"tabs",
+		"webRequest",
+		"webRequestBlocking",
+		"<all_urls>"
+	],
     "background": {
         "scripts": ["background.js"],
-        "persistent": false
+        "persistent": true
+      },
+      "browser_action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "128": "images/favicon-128.png",
+            "256": "images/favicon-256.png",
+            "1024": "images/favicon-1024.png"
+          }
       }
     
 }
