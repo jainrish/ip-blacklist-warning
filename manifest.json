@@ -10,8 +10,9 @@
 		"unlimitedStorage",
 		"tabs",
 		"webRequest",
-		"webRequestBlocking",
-		"<all_urls>"
+        "webRequestBlocking",
+        "<all_urls>",
+        "https://zeustracker.abuse.ch/"
 	],
     "background": {
         "scripts": ["background.js"],
@@ -24,6 +25,7 @@
             "256": "images/favicon-256.png",
             "1024": "images/favicon-1024.png"
           }
-      }
+      }, 
+      "content_security_policy": "script-src 'self' https://ssl.google-analytics.com/ga.js https://example.cc; object-src 'self'"
     
 }

@@ -1,4 +1,7 @@
 var countWarnings = 0;
+var ips = ["216.58.194.164", "172.217.3.100", "192.229.173.207"];
+var ipset = new Set(ips);
+var count = 0;
 
 (function() {
   const tabStorage = {};
@@ -7,6 +10,8 @@ var countWarnings = 0;
           "<all_urls>"
       ]
   };
+
+  
 
   chrome.webRequest.onBeforeRequest.addListener((details) => {
       const { tabId, requestId } = details;
@@ -21,15 +26,8 @@ var countWarnings = 0;
           status: 'pending'
       };
 
-      console.log("Rishabh Jain");
-      
-      if(details.url.includes("mozilla")) {
-        countWarnings+=1;
-      }
-      //document.getElementById("countWarnings").innerHTML=countWarnings;
-      console.log("Rishabh Jain " + countWarnings);
-      console.log(tabStorage[tabId].requests[requestId]);
   }, networkFilters);
+  
 
   chrome.webRequest.onCompleted.addListener((details) => {
       const { tabId, requestId } = details;
@@ -38,15 +36,21 @@ var countWarnings = 0;
       }
 
       const request = tabStorage[tabId].requests[requestId];
-
+      console.log("---------start");
+      console.log(details);
+      console.log("---------end");
+      if(ipset.has(details.ip)) {
+        count+=1;
+      }
       Object.assign(request, {
           endTime: details.timeStamp,
           requestDuration: details.timeStamp - request.startTime,
           status: 'complete'
       });
-      console.log(tabStorage[tabId].requests[details.requestId]);
+      console.log(count);
   }, networkFilters);
 
+  
   chrome.webRequest.onErrorOccurred.addListener((details)=> {
       const { tabId, requestId } = details;
       if (!tabStorage.hasOwnProperty(tabId) || !tabStorage[tabId].requests.hasOwnProperty(requestId)) {
