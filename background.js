@@ -1,12 +1,12 @@
 var countWarnings = 0;
 var ips = ["216.58.194.164", "172.217.3.100", "192.229.173.207"];
 var ipset = new Set(ips);
-var count = 0;
-
+var blacklistedIPCount = 0;
+var tabStorage = {};
 
 
 (function () {
-    const tabStorage = {};
+    
     const networkFilters = {
         urls: [
             "<all_urls>"
@@ -22,7 +22,7 @@ var count = 0;
             tabStorage[tabId].warning.url = tab.url;
             tabStorage[tabId].warning.count = 0;
             tabStorage[tabId].warning.resetCount = false;
-            console.log("counter value set to 0");
+            console.log("counter value set to 0 : " + tabId);
         }
 
         if (changeInfo.url === undefined && changeInfo.status === 'complete') {

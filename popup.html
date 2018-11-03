@@ -1,17 +1,30 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <style>
-      button {
-        height: 30px;
-        width: 30px;
-        outline: none;
-      }
-    </style>
-  </head>
-  <body>
-    <button id="changeColor"></button>
-    <p id="countWarnings"></p>
-    <script src="background.js"></script>
-  </body>
+
+<head>
+  <meta charset="utf-8">
+  <title>Blacklisted IPs</title>
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/popup.css" type="text/css">
+</head>
+
+<body>
+
+  <div class="wrap">
+    <div class="logo"><img src="images/favicon-256.png" width="48"></div>
+    <div class="content"><span id="title">Blacklisted IPs</span><br><small>Version 1.0</small></div>
+  </div>
+
+  <div id="hideWl">
+    <div id="hidePs">
+      <h2>Blacklisted IPs</h2>
+      <p id="blacklistedIPCount">99</p>
+      <table id="blockedDomains" style="width:100%">
+      </table>
+      <hr>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
 </html>
