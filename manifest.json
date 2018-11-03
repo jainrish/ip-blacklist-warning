@@ -21,9 +21,9 @@
       "browser_action": {
         "default_popup": "popup.html",
         "default_icon": {
-            "128": "images/favicon-128.png",
-            "256": "images/favicon-256.png",
-            "1024": "images/favicon-1024.png"
+            "128": "images/icon1.png",
+            "256": "images/icon1.png",
+            "1024": "images/icon1.png"
           }
       }, 
       "content_security_policy": "script-src 'self' https://ssl.google-analytics.com/ga.js https://example.cc; object-src 'self'"
