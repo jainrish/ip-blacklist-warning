@@ -3,6 +3,8 @@ var ips = ["216.58.194.164", "172.217.3.100", "192.229.173.207"];
 var ipset = new Set(ips);
 var count = 0;
 
+
+
 (function () {
     const tabStorage = {};
     const networkFilters = {
@@ -11,16 +13,22 @@ var count = 0;
         ]
     };
 
-
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
-        
+
     });
 
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-        var warnCountTemp = 0;
-        if(tabStorage[tabId].warning.url!=tab.url) {
+        if (tabStorage[tabId].warning.resetCount == true) {
             tabStorage[tabId].warning.url = tab.url;
             tabStorage[tabId].warning.count = 0;
+            tabStorage[tabId].warning.resetCount = false;
+            console.log("counter value set to 0");
+        }
+
+        if (changeInfo.url === undefined && changeInfo.status === 'complete') {
+            console.log(changeInfo);
+            console.log("page reloaded");
+            tabStorage[tabId].warning.resetCount = true;
         }
 
     });
@@ -47,7 +55,7 @@ var count = 0;
         }
 
         const request = tabStorage[tabId].requests[requestId];
-        
+
         if (ipset.has(details.ip)) {
             tabStorage[tabId].warning.count += 1;
         }
@@ -82,7 +90,8 @@ var count = 0;
                 requests: {},
                 warning: {
                     url: "",
-                    count: 0
+                    count: 0,
+                    resetCount: false
                 },
                 registerTime: new Date().getTime()
             };
