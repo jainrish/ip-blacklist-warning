@@ -6,7 +6,7 @@ var tabStorage = {};
 
 
 (function () {
-    
+
     const networkFilters = {
         urls: [
             "<all_urls>"
@@ -16,6 +16,17 @@ var tabStorage = {};
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
 
     });
+
+    chrome.windows.onCreated.addListener((window) => {
+        console.log("New window: " + window.id);
+        let date = new Date().toISOString().slice(0, 10);
+        // chrome.storage.sync.set({currentDate: date}, function() {
+        //     console.log('Value is set to ' + date);
+        // });
+        chrome.storage.sync.get(['currentDate'], function(result) {
+            console.log('Value currently is ' + result.currentDate);
+          });
+      });
 
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         if (tabStorage[tabId].warning.resetCount == true) {
@@ -96,6 +107,13 @@ var tabStorage = {};
                 registerTime: new Date().getTime()
             };
         }
+        
+        var x = new XMLHttpRequest();
+        x.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
+        x.onload = function () {
+            console.log(x.responseText);
+        };
+        x.send();
     });
     chrome.tabs.onRemoved.addListener((tab) => {
         const tabId = tab.tabId;
