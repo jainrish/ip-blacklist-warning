@@ -8,7 +8,7 @@ var synced = false;
 (function () {
 
     function syncBlacklistedIPData() {
-        let actualCurrentdate = '2018-11-09';//new Date().toISOString().slice(0, 10);
+        let actualCurrentdate = '2018-11-7';//new Date().toISOString().slice(0, 10);
         chrome.storage.sync.get(['currentDate'], function (result) {
             console.log('Value currently is ' + result.currentDate);
             console.log('actual date is ' + actualCurrentdate);
@@ -41,6 +41,10 @@ var synced = false;
 
     }
 
+    function updateBadgeText(tabId) {
+        chrome.browserAction.setBadgeText({text: tabStorage[tabId].warning.count.toString()});
+    }
+
     const networkFilters = {
         urls: [
             "<all_urls>"
@@ -49,17 +53,12 @@ var synced = false;
 
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
         syncBlacklistedIPData();
+        updateBadgeText(tabId);
     });
 
-    chrome.storage.onChanged.addListener(function(changes, tabStorage) {
-        // chrome.browserAction.setBadgeText()
-        console.log("changes are ");
-        console.log(changes);
+    chrome.tabs.onActiveChanged.addListener(function (tabId, changeInfo, tab) {
+        updateBadgeText(tabId);
     });
-
-    // chrome.windows.onCreated.addListener((window) => {
-    //     syncBlacklistedIPData();
-    // });
 
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         if (tabStorage[tabId].warning.resetCount == true) {
@@ -74,6 +73,7 @@ var synced = false;
             console.log("page reloaded");
             tabStorage[tabId].warning.resetCount = true;
         }
+        updateBadgeText(tabId);
 
     });
 
@@ -107,6 +107,7 @@ var synced = false;
 
         if (ipset.has(details.ip)) {
             tabStorage[tabId].warning.count += 1;
+            updateBadgeText(tabId);
         }
         Object.assign(request, {
             endTime: details.timeStamp,
