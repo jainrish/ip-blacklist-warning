@@ -7,8 +7,14 @@ var synced = false;
 
 (function () {
 
+    const networkFilters = {
+        urls: [
+            "<all_urls>"
+        ]
+    };
+
     function syncBlacklistedIPData() {
-        let actualCurrentdate = '2018-11-7';//new Date().toISOString().slice(0, 10);
+        let actualCurrentdate = new Date().toISOString().slice(0, 10)//'2018-11-7';
         chrome.storage.sync.get(['currentDate'], function (result) {
 
             if (typeof result === 'undefined' || result.currentDate != actualCurrentdate || ipset.size==0) {
@@ -40,14 +46,22 @@ var synced = false;
     }
 
     function updateBadgeText(tabId) {
+        if (!tabStorage.hasOwnProperty(tabId)) {
+            chrome.browserAction.setBadgeText({text: "0"});
+            return;
+        }
         chrome.browserAction.setBadgeText({text: tabStorage[tabId].warning.count.toString()});
     }
 
-    const networkFilters = {
-        urls: [
-            "<all_urls>"
-        ]
-    };
+    function isEmpty(obj) {
+        for(var key in obj) {
+            if(obj.hasOwnProperty(key))
+                return false;
+        }
+        return true;
+    }
+
+   
 
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
         syncBlacklistedIPData();
@@ -104,8 +118,12 @@ var synced = false;
         }
 
         if (ipset.has(details.ip)) {
-            tabStorage[tabId].warning.count += 1;
             updateBadgeText(tabId);
+            if(isEmpty(tabStorage[tabId].warning.ipList)) {
+                tabStorage[tabId].warning.ipList = new Set();
+            }
+            tabStorage[tabId].warning.ipList.add(details.ip);
+            tabStorage[tabId].warning.count = tabStorage[tabId].warning.ipList.size;
         }
         Object.assign(request, {
             endTime: details.timeStamp,
@@ -113,7 +131,7 @@ var synced = false;
             status: 'complete'
         });
         console.log(tabStorage[tabId].warning.count);
-        console.log(tabStorage[tabId].warning.ipList);
+        console.log(tabStorage[tabId].warning.ipList.size);
     }, networkFilters);
 
 
