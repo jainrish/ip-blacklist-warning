@@ -2,12 +2,13 @@ var countWarnings = 0;
 var ipset = new Set();
 var blacklistedIPCount = 0;
 var tabStorage = {};
+var synced = false;
 
 
 (function () {
 
     function syncBlacklistedIPData() {
-        let actualCurrentdate = '2018-11-07';//new Date().toISOString().slice(0, 10);
+        let actualCurrentdate = '2018-11-09';//new Date().toISOString().slice(0, 10);
         chrome.storage.sync.get(['currentDate'], function (result) {
             console.log('Value currently is ' + result.currentDate);
             console.log('actual date is ' + actualCurrentdate);
@@ -18,21 +19,23 @@ var tabStorage = {};
                     console.log('currentDate is set to ' + actualCurrentdate);
                 });
 
-                var x = new XMLHttpRequest();
-                x.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
-                x.onload = function () {
-                    let response = x.responseText;
+                var request = new XMLHttpRequest();
+                request.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
+                request.onload = function () {
+                    let response = request.responseText;
                     response = response.substring(1, response.length-1);
                     response = response.replace(/["']/g, "");
                     ipset = new Set(response.split(","));
                     
                     chrome.storage.sync.set({ ipset: ipset }, function () {
-                        console.log('ipsList is set to ' + x.responseText);
+                        console.log('ipsList is set to ' + request.responseText);
                     });
                 };
-                x.send();
+                request.send();
             } else {
-                console.log('equal');
+                chrome.storage.sync.get(['ipset'], function (result) {
+                    ipset = result.ipset;
+                });
             }
         });
 
@@ -46,6 +49,12 @@ var tabStorage = {};
 
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
         syncBlacklistedIPData();
+    });
+
+    chrome.storage.onChanged.addListener(function(changes, tabStorage) {
+        // chrome.browserAction.setBadgeText()
+        console.log("changes are ");
+        console.log(changes);
     });
 
     // chrome.windows.onCreated.addListener((window) => {
@@ -91,6 +100,11 @@ var tabStorage = {};
 
         const request = tabStorage[tabId].requests[requestId];
 
+        if(ipset.size==0 && !synced) {
+            syncBlacklistedIPData();
+            synced = true;
+        }
+
         if (ipset.has(details.ip)) {
             tabStorage[tabId].warning.count += 1;
         }
@@ -100,6 +114,7 @@ var tabStorage = {};
             status: 'complete'
         });
         console.log(tabStorage[tabId].warning.count);
+        console.log(tabStorage[tabId].warning.ipList);
     }, networkFilters);
 
 
@@ -126,6 +141,7 @@ var tabStorage = {};
                 warning: {
                     url: "",
                     count: 0,
+                    ipList: {},
                     resetCount: false
                 },
                 registerTime: new Date().getTime()
