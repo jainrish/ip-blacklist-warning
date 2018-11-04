@@ -1,11 +1,42 @@
 var countWarnings = 0;
-var ips = ["216.58.194.164", "172.217.3.100", "192.229.173.207"];
-var ipset = new Set(ips);
+var ipset = new Set();
 var blacklistedIPCount = 0;
 var tabStorage = {};
 
 
 (function () {
+
+    function syncBlacklistedIPData() {
+        let actualCurrentdate = '2018-11-07';//new Date().toISOString().slice(0, 10);
+        chrome.storage.sync.get(['currentDate'], function (result) {
+            console.log('Value currently is ' + result.currentDate);
+            console.log('actual date is ' + actualCurrentdate);
+
+            if (typeof result === 'undefined' || result.currentDate != actualCurrentdate) {
+
+                chrome.storage.sync.set({ currentDate: actualCurrentdate }, function () {
+                    console.log('currentDate is set to ' + actualCurrentdate);
+                });
+
+                var x = new XMLHttpRequest();
+                x.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
+                x.onload = function () {
+                    let response = x.responseText;
+                    response = response.substring(1, response.length-1);
+                    response = response.replace(/["']/g, "");
+                    ipset = new Set(response.split(","));
+                    
+                    chrome.storage.sync.set({ ipset: ipset }, function () {
+                        console.log('ipsList is set to ' + x.responseText);
+                    });
+                };
+                x.send();
+            } else {
+                console.log('equal');
+            }
+        });
+
+    }
 
     const networkFilters = {
         urls: [
@@ -14,19 +45,12 @@ var tabStorage = {};
     };
 
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
-
+        syncBlacklistedIPData();
     });
 
-    chrome.windows.onCreated.addListener((window) => {
-        console.log("New window: " + window.id);
-        let date = new Date().toISOString().slice(0, 10);
-        // chrome.storage.sync.set({currentDate: date}, function() {
-        //     console.log('Value is set to ' + date);
-        // });
-        chrome.storage.sync.get(['currentDate'], function(result) {
-            console.log('Value currently is ' + result.currentDate);
-          });
-      });
+    // chrome.windows.onCreated.addListener((window) => {
+    //     syncBlacklistedIPData();
+    // });
 
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         if (tabStorage[tabId].warning.resetCount == true) {
@@ -107,13 +131,7 @@ var tabStorage = {};
                 registerTime: new Date().getTime()
             };
         }
-        
-        var x = new XMLHttpRequest();
-        x.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
-        x.onload = function () {
-            console.log(x.responseText);
-        };
-        x.send();
+
     });
     chrome.tabs.onRemoved.addListener((tab) => {
         const tabId = tab.tabId;
