@@ -20,7 +20,7 @@ var synced = false;
             if (typeof result === 'undefined' || result.currentDate != actualCurrentdate || ipset.size==0) {
 
                 chrome.storage.sync.set({ currentDate: actualCurrentdate }, function () {
-                    console.log('currentDate is set to ' + actualCurrentdate);
+                    // console.log('currentDate is set to ' + actualCurrentdate);
                 });
 
                 var request = new XMLHttpRequest();
@@ -32,7 +32,7 @@ var synced = false;
                     ipset = new Set(response.split(","));
                     
                     chrome.storage.sync.set({ ipset: ipset }, function () {
-                        console.log('ipsList is set to ' + request.responseText);
+                        // console.log('ipsList is set to ' + request.responseText);
                     });
                 };
                 request.send();
@@ -77,12 +77,13 @@ var synced = false;
             tabStorage[tabId].warning.url = tab.url;
             tabStorage[tabId].warning.count = 0;
             tabStorage[tabId].warning.resetCount = false;
-            console.log("counter value set to 0 : " + tabId);
+            tabStorage[tabId].warning.ipList = new Set();
+            // console.log("counter value set to 0 : " + tabId);
         }
 
         if (changeInfo.url === undefined && changeInfo.status === 'complete') {
-            console.log(changeInfo);
-            console.log("page reloaded");
+            // console.log(changeInfo);
+            // console.log("page reloaded");
             tabStorage[tabId].warning.resetCount = true;
         }
         updateBadgeText(tabId);
@@ -130,8 +131,8 @@ var synced = false;
             requestDuration: details.timeStamp - request.startTime,
             status: 'complete'
         });
-        console.log(tabStorage[tabId].warning.count);
-        console.log(tabStorage[tabId].warning.ipList.size);
+        // console.log(tabStorage[tabId].warning.count);
+        // console.log(tabStorage[tabId].warning.ipList.size);
     }, networkFilters);
 
 
@@ -146,7 +147,7 @@ var synced = false;
             endTime: details.timeStamp,
             status: 'error',
         });
-        console.log(tabStorage[tabId].requests[requestId]);
+        // console.log(tabStorage[tabId].requests[requestId]);
     }, networkFilters);
 
     chrome.tabs.onActivated.addListener((tab) => {
