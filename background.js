@@ -17,22 +17,43 @@ var synced = false;
         let actualCurrentdate = new Date().toISOString().slice(0, 10)//'2018-11-7';
         chrome.storage.sync.get(['currentDate'], function (result) {
 
-            if (typeof result === 'undefined' || result.currentDate != actualCurrentdate || ipset.size==0) {
+            if (typeof result === 'undefined' || result.currentDate != actualCurrentdate || ipset.size == 0) {
 
                 chrome.storage.sync.set({ currentDate: actualCurrentdate }, function () {
                     // console.log('currentDate is set to ' + actualCurrentdate);
                 });
 
+                // var request = new XMLHttpRequest();
+                // request.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
+                // request.onload = function () {
+                //     let response = request.responseText;
+                //     response = response.substring(1, response.length - 1);
+                //     response = response.replace(/["']/g, "");
+                //     ipset = new Set(response.split(","));
+
+                //     chrome.storage.sync.set({ ipset: ipset }, function () {
+                //         // console.log('ipsList is set to ' + request.responseText);
+                //     });
+                // };
+                // request.send();
+                ipset = new Set();
+                ipset.add("216.58.194.164");
+                ipset.add("172.217.3.100");
+                ipset.add("192.229.173.207");
                 var request = new XMLHttpRequest();
-                request.open('GET', 'https://ipblacklist.herokuapp.com/blacklistedIPs');
+                request.open('GET', 'https://myip.ms/files/blacklist/general/latest_blacklist.txt');
                 request.onload = function () {
                     let response = request.responseText;
-                    response = response.substring(1, response.length-1);
-                    response = response.replace(/["']/g, "");
-                    ipset = new Set(response.split(","));
-                    
+                    response = response.split("\n");
+                    console.log(response.length);
+                    response.forEach((element, index, response) => {
+                        if (!(element.startsWith("#") || element === '') && element.includes("\t")) {
+                            ipset.add(element.split("\t")[0]);
+                            // console.log(index);
+                        }
+                    });
                     chrome.storage.sync.set({ ipset: ipset }, function () {
-                        // console.log('ipsList is set to ' + request.responseText);
+                        console.log('ipsList is set to ' + ipset.size);
                     });
                 };
                 request.send();
@@ -47,21 +68,21 @@ var synced = false;
 
     function updateBadgeText(tabId) {
         if (!tabStorage.hasOwnProperty(tabId)) {
-            chrome.browserAction.setBadgeText({text: "0"});
+            chrome.browserAction.setBadgeText({ text: "0" });
             return;
         }
-        chrome.browserAction.setBadgeText({text: tabStorage[tabId].warning.count.toString()});
+        chrome.browserAction.setBadgeText({ text: tabStorage[tabId].warning.count.toString() });
     }
 
     function isEmpty(obj) {
-        for(var key in obj) {
-            if(obj.hasOwnProperty(key))
+        for (var key in obj) {
+            if (obj.hasOwnProperty(key))
                 return false;
         }
         return true;
     }
 
-   
+
 
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
         syncBlacklistedIPData();
@@ -113,14 +134,14 @@ var synced = false;
 
         const request = tabStorage[tabId].requests[requestId];
 
-        if(ipset.size==0 && !synced) {
+        if (ipset.size == 0 && !synced) {
             syncBlacklistedIPData();
             synced = true;
         }
 
         if (ipset.has(details.ip)) {
             updateBadgeText(tabId);
-            if(isEmpty(tabStorage[tabId].warning.ipList)) {
+            if (isEmpty(tabStorage[tabId].warning.ipList)) {
                 tabStorage[tabId].warning.ipList = new Set();
             }
             tabStorage[tabId].warning.ipList.add(details.ip);
@@ -152,6 +173,8 @@ var synced = false;
 
     chrome.tabs.onActivated.addListener((tab) => {
         const tabId = tab ? tab.tabId : chrome.tabs.TAB_ID_NONE;
+        var request = new XMLHttpRequest();
+
         if (!tabStorage.hasOwnProperty(tabId)) {
             tabStorage[tabId] = {
                 id: tabId,
