@@ -10,10 +10,8 @@ var synced = false;
     function syncBlacklistedIPData() {
         let actualCurrentdate = '2018-11-7';//new Date().toISOString().slice(0, 10);
         chrome.storage.sync.get(['currentDate'], function (result) {
-            console.log('Value currently is ' + result.currentDate);
-            console.log('actual date is ' + actualCurrentdate);
 
-            if (typeof result === 'undefined' || result.currentDate != actualCurrentdate) {
+            if (typeof result === 'undefined' || result.currentDate != actualCurrentdate || ipset.size==0) {
 
                 chrome.storage.sync.set({ currentDate: actualCurrentdate }, function () {
                     console.log('currentDate is set to ' + actualCurrentdate);
