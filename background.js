@@ -1,3 +1,4 @@
+// https://jainrish.github.io/assets/full_blacklist_database.txt
 var countWarnings = 0;
 var ipset = new Set();
 var blacklistedIPCount = 0;
@@ -14,7 +15,7 @@ var synced = false;
     };
 
     function syncBlacklistedIPData() {
-        let actualCurrentdate = new Date().toISOString().slice(0, 10)//'2018-11-7';
+        let actualCurrentdate = new Date().toISOString().slice(0, 10);//'2018-11-6';//
         chrome.storage.sync.get(['currentDate'], function (result) {
 
             if (typeof result === 'undefined' || result.currentDate != actualCurrentdate || ipset.size == 0) {
@@ -40,23 +41,8 @@ var synced = false;
                 ipset.add("216.58.194.164");
                 ipset.add("172.217.3.100");
                 ipset.add("192.229.173.207");
-                var request = new XMLHttpRequest();
-                request.open('GET', 'https://myip.ms/files/blacklist/general/latest_blacklist.txt');
-                request.onload = function () {
-                    let response = request.responseText;
-                    response = response.split("\n");
-                    console.log(response.length);
-                    response.forEach((element, index, response) => {
-                        if (!(element.startsWith("#") || element === '') && element.includes("\t")) {
-                            ipset.add(element.split("\t")[0]);
-                            // console.log(index);
-                        }
-                    });
-                    chrome.storage.sync.set({ ipset: ipset }, function () {
-                        console.log('ipsList is set to ' + ipset.size);
-                    });
-                };
-                request.send();
+                sendRequest('https://myip.ms/files/blacklist/general/latest_blacklist.txt');
+                sendRequest('https://myip.ms/files/blacklist/general/latest_blacklist_users_submitted.txt');
             } else {
                 chrome.storage.sync.get(['ipset'], function (result) {
                     ipset = result.ipset;
@@ -64,6 +50,28 @@ var synced = false;
             }
         });
 
+    }
+
+    function sendRequest(url) {
+        var request = new XMLHttpRequest();
+                request.open('GET', url );
+                request.onload = function () {
+                    var response = request.responseText;
+                    response = response.split("\n");
+                    console.log(response.length);
+                    var i=0;
+                    response.forEach((element, index, response) => {
+                        i++;
+                        // console.log(i);
+                        if (!(element.startsWith("#") || element === '') && element.includes("\t")) {
+                            ipset.add(element.split("\t")[0]);
+                        }
+                    });
+                    chrome.storage.sync.set({ ipset: ipset }, function () {
+                        console.log('ipsList is set to ' + ipset.size);
+                    });
+                };
+                request.send();
     }
 
     function updateBadgeText(tabId) {
@@ -82,6 +90,9 @@ var synced = false;
         return true;
     }
 
+    chrome.runtime.onInstalled.addListener(function() {
+        syncBlacklistedIPData();
+    });
 
 
     chrome.tabs.onCreated.addListener(function (tabId, changeInfo, tab) {
@@ -94,15 +105,16 @@ var synced = false;
     });
 
     chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-        if (tabStorage[tabId].warning.resetCount == true) {
+        if (tabStorage[tabId] && tabStorage[tabId].warning && tabStorage[tabId].warning.resetCount == true) {
             tabStorage[tabId].warning.url = tab.url;
             tabStorage[tabId].warning.count = 0;
             tabStorage[tabId].warning.resetCount = false;
-            tabStorage[tabId].warning.ipList = new Set();
+            tabStorage[tabId].warning.blackList = new Set();
+            tabStorage[tabId].warning.whiteList = new Set();
             // console.log("counter value set to 0 : " + tabId);
         }
 
-        if (changeInfo.url === undefined && changeInfo.status === 'complete') {
+        if (tabStorage[tabId] && tabStorage[tabId].warning && changeInfo.url === undefined && changeInfo.status === 'complete') {
             // console.log(changeInfo);
             // console.log("page reloaded");
             tabStorage[tabId].warning.resetCount = true;
@@ -141,19 +153,22 @@ var synced = false;
 
         if (ipset.has(details.ip)) {
             updateBadgeText(tabId);
-            if (isEmpty(tabStorage[tabId].warning.ipList)) {
-                tabStorage[tabId].warning.ipList = new Set();
+            if (isEmpty(tabStorage[tabId].warning.blackList)) {
+                tabStorage[tabId].warning.blackList = new Set();
             }
-            tabStorage[tabId].warning.ipList.add(details.ip);
-            tabStorage[tabId].warning.count = tabStorage[tabId].warning.ipList.size;
+            tabStorage[tabId].warning.blackList.add(details.ip);
+            tabStorage[tabId].warning.count = tabStorage[tabId].warning.blackList.size;
+        } else {
+            if (isEmpty(tabStorage[tabId].warning.whiteList)) {
+                tabStorage[tabId].warning.whiteList = new Set();
+            }
+            tabStorage[tabId].warning.whiteList.add(details.ip);
         }
         Object.assign(request, {
             endTime: details.timeStamp,
             requestDuration: details.timeStamp - request.startTime,
             status: 'complete'
         });
-        // console.log(tabStorage[tabId].warning.count);
-        // console.log(tabStorage[tabId].warning.ipList.size);
     }, networkFilters);
 
 
@@ -182,7 +197,8 @@ var synced = false;
                 warning: {
                     url: "",
                     count: 0,
-                    ipList: {},
+                    blackList: {},
+                    whiteList: {},
                     resetCount: false
                 },
                 registerTime: new Date().getTime()

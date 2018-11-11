@@ -11,8 +11,7 @@
 		"tabs",
 		"webRequest",
         "webRequestBlocking",
-        "<all_urls>",
-        "https://zeustracker.abuse.ch/"
+        "<all_urls>"
 	],
     "background": {
         "scripts": ["background.js"],
