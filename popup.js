@@ -3,15 +3,23 @@
     'use strict';
     var utils;
     var background = chrome.extension.getBackgroundPage();
+    var ipNode = document.getElementById('localIP');
 
     function initPopupPage() {
         initWhiteListBtnStatus();
         function initWhiteListBtnStatus() {
+
+
             chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
                 if (!tabs) {
                     return;
                 }
                 let ctab = tabs[0];
+
+                ipNode.innerHTML = background.isLocalIPBlackListed ? ('Your IP <font color="#C12706">' 
+                + background.localIP + '</font> is blacklisted') : ('Your IP <font color="#0B7929">' 
+                + background.localIP + '</font> is not blacklisted');
+
 
                 if (!background.tabStorage[ctab.id] || !background.tabStorage[ctab.id].warning) {
                     return;
@@ -36,16 +44,6 @@
                             tableEl.appendChild(trEl);
                         })
                     }
-
-
-                    // background.tabStorage[ctab.id].warning.blackList.forEach(element => {
-                    //     trEl = document.createElement('tr');
-                    //     tdEl = document.createElement('td');
-                    //     tdEl.innerText = element;
-                    //     tdEl.style.color = '#C12706';
-                    //     trEl.appendChild(tdEl);
-                    //     tableEl.appendChild(trEl);
-                    // });
                 }
 
 
@@ -74,11 +72,11 @@
     }
 
     function setWlistStatus(status) {
-        // document.getElementById('addWlist').style.display = (status === true) ? 'none' : '';
-        // document.getElementById('removeWlist').style.display = (status === true) ? '' : 'none';
         document.getElementById('hideWl').style.display = (status === true) ? '' : '';
         document.getElementById('hidePs').style.display = (status === true) ? '' : '';
     }
+
+
     initPopupPage();
 
 }());
