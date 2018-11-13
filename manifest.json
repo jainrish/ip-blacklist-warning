@@ -5,9 +5,6 @@
     "description": "Warn about communication to blacklisted IPs",
     "version" : "1.0",
     "permissions": [
-		"activeTab",
-		"storage",
-		"unlimitedStorage",
 		"tabs",
 		"webRequest",
         "webRequestBlocking",

@@ -66,18 +66,18 @@ var isLocalIPBlackListed = false;
         if (!ipset || ipset.size == 0) {
 
             ipset = new Set();
-            ipset.add("216.58.194.164");
-            ipset.add("172.217.3.100");
-            ipset.add("192.229.173.207");
+            // ipset.add("216.58.194.164");
+            // ipset.add("172.217.3.100");
+            // ipset.add("172.217.11.4");
             sendRequest('https://myip.ms/files/blacklist/general/latest_blacklist.txt');
             sendRequest('https://myip.ms/files/blacklist/general/latest_blacklist_users_submitted.txt');
-            console.log("resetting");
+            // console.log("resetting");
         }
 
         if (localIP == "") {
             getLocalIPs(function (ips) {
                 localIP = ips[0];
-                console.log("local ip is ", localIP);
+                // console.log("local ip is ", localIP);
                 if(ipset.has(localIP)) {
                     isLocalIPBlackListed = true;
                 }
@@ -92,7 +92,7 @@ var isLocalIPBlackListed = false;
         request.onload = function () {
             var response = request.responseText;
             response = response.split("\n");
-            console.log(response.length);
+            // console.log(response.length);
             var i = 0;
             response.forEach((element, index, response) => {
                 i++;
@@ -101,9 +101,9 @@ var isLocalIPBlackListed = false;
                     ipset.add(element.split("\t")[0]);
                 }
             });
-            chrome.storage.sync.set({ ipset: ipset }, function () {
-                console.log('ipsList is set to ' + ipset.size);
-            });
+            // chrome.storage.sync.set({ ipset: ipset }, function () {
+            //     console.log('ipsList is set to ' + ipset.size);
+            // });
         };
         request.send();
     }
