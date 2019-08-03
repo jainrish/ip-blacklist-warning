@@ -1,0 +1,7 @@
+1. Unzip the folder
+2. Open Chrome Browser
+3. Open Chrome Extensions page i.e. chrome://extensions/
+4. Make sure that Developer Mode is switched on (top right side)
+5. Click on "local unpacked" button on top left side
+6. Select the folder location where the zip file was unzipped.
+7. The extension should be loaded into Chrome now.
